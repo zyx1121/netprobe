@@ -42,7 +42,7 @@ async def attempt(n):
         return False
 
 async def many():
-    ok = [await attempt(i) for i in range(1, 6)]
+    ok = [await attempt(i) for i in range(1, 5)]
     print("success", sum(ok), "of", len(ok))
 
 asyncio.run(many())

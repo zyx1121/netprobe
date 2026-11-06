@@ -17,4 +17,9 @@ jobs:
           LK_URL: wss://livekit.winlab.tw
         run: |
           pip install -q livekit
-          python probe.py
+          sudo tcpdump -nqi any -w /tmp/u.pcap "udp and host 140.113.60.184" &
+          sleep 2
+          python probe.py || true
+          sudo pkill tcpdump; sleep 1
+          echo "== packets by direction and remote port"
+          sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | awk '{print $3, $5}' | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.([0-9]+) /\1 /; s/:$//' | awk '{ if ($1 ~ /^140/) print "IN from", $1; else print "OUT to", $2 }' | sed -E 's/140\.113\.60\.184\./184:/' | sort | uniq -c | sort -rn | head -20
