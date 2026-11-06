@@ -22,4 +22,6 @@ jobs:
           python probe.py || true
           sudo pkill tcpdump; sleep 1
           echo "== packets by direction and remote port"
-          sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | awk '{print $3, $5}' | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.([0-9]+) /\1 /; s/:$//' | awk '{ if ($1 ~ /^140/) print "IN from", $1; else print "OUT to", $2 }' | sed -E 's/140\.113\.60\.184\./184:/' | sort | uniq -c | sort -rn | head -20
+          sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | awk '{ if ($3 ~ /^140\.113/) print "IN  src=" $3; else { d=$5; sub(/:$/, "", d); print "OUT dst=" d } }' | sort | uniq -c | sort -rn | head -12
+          echo "== first 10 packets"
+          sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | head -10
