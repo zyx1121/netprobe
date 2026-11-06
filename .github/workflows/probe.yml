@@ -17,10 +17,11 @@ jobs:
           LK_URL: wss://livekit.winlab.tw
         run: |
           pip install -q livekit
-          sudo tcpdump -nqi any -w /tmp/u.pcap "udp and host 140.113.60.184" &
+          sudo tcpdump -nqi any -w /tmp/u.pcap "host 140.113.60.163 or host 140.113.60.184" &
           sleep 2
           python probe.py || true
           sudo pkill tcpdump; sleep 1
+          echo "== TLS 443 reachable"; timeout 5 openssl s_client -connect turn.winlab.tw:443 -servername turn.winlab.tw </dev/null 2>/dev/null | grep -E "subject=|Verify return"
           echo "== packets by direction and remote port"
           sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | awk '{ if ($3 ~ /^140\.113/) print "IN  src=" $3; else { d=$5; sub(/:$/, "", d); print "OUT dst=" d } }' | sort | uniq -c | sort -rn | head -12
           echo "== first 10 packets"

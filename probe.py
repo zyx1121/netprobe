@@ -28,21 +28,26 @@ async def main():
     print("done, states:", states)
     await room.disconnect()
 
-async def attempt(n):
+async def attempt(n, relay=False):
     room = rtc.Room()
+    opts = rtc.RoomOptions()
+    if relay:
+        opts = rtc.RoomOptions(rtc_config=rtc.RtcConfiguration(ice_transport_type=rtc.IceTransportType.TRANSPORT_RELAY))
     t = asyncio.get_event_loop().time()
     try:
-        await asyncio.wait_for(room.connect(os.environ["LK_URL"], os.environ["TOKEN"]), 90)
-        print(f"attempt {n}: connected in {asyncio.get_event_loop().time() - t:.1f}s")
+        await asyncio.wait_for(room.connect(os.environ["LK_URL"], os.environ["TOKEN"], opts), 90)
+        print(f"attempt {n}{' relay' if relay else ''}: connected in {asyncio.get_event_loop().time() - t:.1f}s")
         await asyncio.sleep(3)
         await room.disconnect()
         return True
     except Exception as e:
-        print(f"attempt {n}: FAILED after {asyncio.get_event_loop().time() - t:.1f}s {type(e).__name__} {e}")
+        print(f"attempt {n}{' relay' if relay else ''}: FAILED after {asyncio.get_event_loop().time() - t:.1f}s {type(e).__name__} {e}")
         return False
 
 async def many():
-    ok = [await attempt(i) for i in range(1, 4)]
-    print("success", sum(ok), "of", len(ok))
+    ok = [await attempt(i) for i in range(1, 6)]
+    print("default success", sum(ok), "of", len(ok))
+    ok = [await attempt(i, True) for i in range(1, 4)]
+    print("relay-only success", sum(ok), "of", len(ok))
 
 asyncio.run(many())
