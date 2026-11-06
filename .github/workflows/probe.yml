@@ -1,0 +1,18 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Runner public IP
+        run: curl -s https://ipinfo.io/json | grep -E '"ip"|"country"|"org"'
+      - name: HTTPS reachability
+        run: |
+          curl -s -o /dev/null -w "meet %{http_code} %{time_total}s\n" https://meet.winlab.tw
+          curl -s -o /dev/null -w "livekit %{http_code} %{time_total}s\n" https://livekit.winlab.tw
+      - name: Install lk
+        run: curl -sSL https://get.livekit.io/cli | bash
+      - name: Join and publish (UDP media)
+        env:
+          TOKEN: ${{ secrets.LK_TOKEN }}
+        run: timeout 45 lk room join --url wss://livekit.winlab.tw --token "$TOKEN" --publish-demo netprobe-abroad 2>&1 | tail -40 || true
