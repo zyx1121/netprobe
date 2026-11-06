@@ -17,7 +17,8 @@ for (const relay of [false, true, false, true, true]) {
         room.connect(url, token, { rtcConfig: relay ? { iceTransportPolicy: "relay" } : {} }),
         new Promise((_, no) => setTimeout(() => no(new Error("timeout 40s")), 40000)),
       ])
-      await room.localParticipant.setMicrophoneEnabled(true)
+      await room.localParticipant.publishData(new TextEncoder().encode("ping"), { reliable: true })
+      await new Promise((r) => setTimeout(r, 1500))
       const ms = Math.round(performance.now() - t)
       const stats = await room.engine.pcManager?.publisher?.getStats?.()
       let pair = ""
