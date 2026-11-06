@@ -22,6 +22,7 @@ jobs:
           python probe.py || true
           sudo pkill tcpdump; sleep 1
           echo "== TLS 443 reachable"; timeout 5 openssl s_client -connect turn.winlab.tw:443 -servername turn.winlab.tw </dev/null 2>/dev/null | grep -E "subject=|Verify return"
+          echo "== TLS 443"; timeout 5 openssl s_client -connect turn.winlab.tw:443 -servername turn.winlab.tw </dev/null 2>/dev/null | grep -E "subject=|Verify return"
           echo "== packets by direction and remote port"
           sudo tcpdump -nqr /tmp/u.pcap 2>/dev/null | awk '{ if ($3 ~ /^140\.113/) print "IN  src=" $3; else { d=$5; sub(/:$/, "", d); print "OUT dst=" d } }' | sort | uniq -c | sort -rn | head -12
           echo "== first 10 packets"
