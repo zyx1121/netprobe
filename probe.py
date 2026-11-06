@@ -28,4 +28,21 @@ async def main():
     print("done, states:", states)
     await room.disconnect()
 
-asyncio.run(main())
+async def attempt(n):
+    room = rtc.Room()
+    t = asyncio.get_event_loop().time()
+    try:
+        await asyncio.wait_for(room.connect(os.environ["LK_URL"], os.environ["TOKEN"]), 90)
+        print(f"attempt {n}: connected in {asyncio.get_event_loop().time() - t:.1f}s")
+        await asyncio.sleep(3)
+        await room.disconnect()
+        return True
+    except Exception as e:
+        print(f"attempt {n}: FAILED after {asyncio.get_event_loop().time() - t:.1f}s {type(e).__name__} {e}")
+        return False
+
+async def many():
+    ok = [await attempt(i) for i in range(1, 6)]
+    print("success", sum(ok), "of", len(ok))
+
+asyncio.run(many())
